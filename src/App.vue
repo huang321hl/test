@@ -3,14 +3,10 @@ import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <div>
-    <div class="test">233</div>
     <router-view />
-  </div>
 </template>
 
 <style scoped>
-
 .logo {
   height: 6em;
   padding: 1.5em;

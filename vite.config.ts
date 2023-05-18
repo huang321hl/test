@@ -18,7 +18,8 @@ export default defineConfig({
       // define global scss variable
       scss: {
         javascriptEnabled: true,
-        additionalData: `@use "@/styles/variables.scss" as *;`,
+        additionalData: `@use "@/styles/index.scss" as *;`,
+        // additionalData: '@import "./src/styles/index.scss";', // 这里的分号不能省
       },
     },
   },

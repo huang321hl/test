@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory  } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 /** 常驻路由 */
 export const constantRoutes = [
