@@ -1,223 +1,271 @@
 <template>
-  <div class="login-wrapper">
-    <div id="stars1" />
-    <div id="stars2" />
-    <div id="stars3" />
-    <div class="login-box">
-      <h2>Login up</h2>
-      <form>
-        <div class="user-box">
-          <input
-            v-model="username"
-            type="text"
-            key="username-v3"
-            name=""
-            required=""
-            autocomplete="new-password"
-          />
-          <label>username</label>
-        </div>
-        <div class="user-box">
-          <input
-            v-model="password"
-            type="password"
-            key="password-v3"
-            name=""
-            required=""
-            autocomplete="new-password"
-          />
-          <label>password</label>
-        </div>
-        <a @click="handleLogin">
-          <span></span> <span></span>
-          <span></span>
-          <span></span>login</a
+  <div class="login-wrap">
+    <div class="ms-login">
+      <div class="ms-title">
+        <span @click="transferLogin(true)" :class="{ isActive: !ifLogin }"
+          >登录 |</span
         >
-      </form>
+        <span @click="transferLogin(false)" :class="{ isActive: ifLogin }">
+          注册</span
+        >
+      </div>
+      <el-form
+        v-if="ifLogin"
+        :model="param"
+        :rules="rules"
+        ref="login"
+        label-width="0px"
+        class="ms-content"
+      >
+        <el-form-item prop="username">
+          <el-input v-model="param.username" placeholder="邮箱">
+            <template #prepend>
+              <svg-icon
+                className="iconMenu"
+                iconName="icon-RectangleCopy"
+              ></svg-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input type="password" placeholder="密码" v-model="param.password">
+            <template #prepend>
+              <svg-icon
+                className="iconMenu"
+                iconName="icon-RectangleCopy1"
+              ></svg-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <!-- 验证码 -->
+        <el-form-item prop="veritify">
+          <el-input
+            style="width: 60%"
+            placeholder="验证码"
+            v-model="param.veritify"
+            @keyup.enter="submitForm()"
+          >
+            <template #prepend>
+              <svg-icon
+                className="iconMenu"
+                iconName="icon-yanzhengma"
+              ></svg-icon>
+            </template>
+          </el-input>
+          <div
+            style="
+              display: inline-block;
+              height: 32px;
+              width: 40%;
+              text-align: right;
+            "
+          >
+            <img src="#" style="width: 95%; height: 32px" alt="" />
+          </div>
+        </el-form-item>
+
+        <div class="login-btn">
+          <el-button type="primary" @click="submitForm()">登录</el-button>
+        </div>
+        <p class="login-tips">Tips : 用户名和密码随便填。</p>
+      </el-form>
+
+      <!-- 注册 -->
+      <el-form
+        v-else
+        :model="param"
+        :rules="rules"
+        ref="login"
+        label-width="0px"
+        class="ms-content"
+      >
+        <el-form-item prop="username">
+          <el-input v-model="param.username" placeholder="邮箱">
+            <template #prepend>
+              <svg-icon
+                className="iconMenu"
+                iconName="icon-RectangleCopy"
+              ></svg-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input type="password" placeholder="密码" v-model="param.password">
+            <template #prepend>
+              <svg-icon
+                className="iconMenu"
+                iconName="icon-RectangleCopy1"
+              ></svg-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item prop="veritify">
+          <el-input
+            style="width: 60%"
+            placeholder="验证码"
+            v-model="param.veritify"
+            @keyup.enter="submitForm()"
+          >
+            <template #prepend>
+              <svg-icon
+                className="iconMenu"
+                iconName="icon-yanzhengma"
+              ></svg-icon>
+            </template>
+          </el-input>
+          <div
+            style="
+              display: inline-block;
+              height: 32px;
+              width: 40%;
+              text-align: right;
+            "
+          >
+            <div
+              @click="verifySignUp"
+              style="
+                cursor: pointer;
+                display: inline-block;
+                border-radius: 5px;
+                color: #fff;
+                width: 90%;
+                border: 1px solid #fff;
+                text-align: center;
+              "
+            >
+              验证邮箱
+            </div>
+            <!-- <img src="#" style="width: 95%; height: 32px" alt="" /> -->
+          </div>
+        </el-form-item>
+
+        <div class="login-btn">
+          <el-button type="primary" @click="submitForm()">注册</el-button>
+        </div>
+        <p class="login-tips">Tips : 用户名和密码随便填。</p>
+      </el-form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useUserStore } from '../../store/user'
-// const userStore = useUserStore()//
-// console.log(userStore.name)
-// https://github.com/brix/crypto-js
-// https://www.cnblogs.com/huiguo/p/16601076.html
-// import sha256 from 'crypto-js'
-// https://juejin.cn/post/7007221498649772063
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { loginRequest, verifySignUp } from '@/api/login'
+const router = useRouter()
+const ifLogin = ref(true)
+// =============== 切换登录注册===========
+const transferLogin = (b) => {
+  ifLogin.value = b
+}
 
-const username = ref()
-const password = ref()
+// ================ 登录 ==================
+const param = reactive({
+  username: '',
+  password: '',
+  veritify: '',
+})
+
+const rules = {
+  username: [
+    {
+      required: true,
+      message: '请输入邮箱',
+      trigger: 'blur',
+    },
+  ],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  veritify: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+}
+const login = ref(null)
+const submitForm = () => {
+  login.value.validate((valid) => {
+    // console.log(valid)
+    if (valid) {
+      loginRequest(param).then(
+        (res) => {
+          // res.data：成功or失败处理
+          // 成功：
+          console.log(res)
+          //
+        },
+        () => {}
+      )
+      ElMessage.success('登录成功')
+      localStorage.setItem('ms_username', param.username)
+      router.push('/')
+    } else {
+      ElMessage.error('登录失败')
+      return false
+    }
+  })
+}
+
+// ================ 注册 ==================
+const verifyEmail = () => {
+  verifySignUp(param).then((res) => {
+    console.log(res)
+  })
+}
 </script>
 
 <style lang="scss" scoped>
-.login-wrapper {
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  min-height: 100%;
-  width: 100%;
-  overflow: hidden;
-  .login-box {
-    position: absolute;
-    text-align: center;
-    top: 50%;
-    left: 50%;
-    width: 400px;
-    padding: 40px;
-    transform: translate(-50%, -50%);
-    background: rgb(33 33 33);
-    box-sizing: border-box;
-    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6);
-    border-radius: 10px;
-    h2 {
-      margin: 0 0 30px;
-      padding: 0;
-      color: #fff;
-      text-align: center;
-    }
-    .user-box {
-      position: relative;
-      label {
-        position: absolute;
-        top: 0;
-        left: 0;
-        padding: 10px 0;
-        font-size: 16px;
-        color: #fff;
-        pointer-events: none;
-        transition: 0.5s;
-      }
-      input {
-        width: 100%;
-        padding: 10px 0;
-        font-size: 16px;
-        color: #fff;
-        margin-bottom: 30px;
-        border: none;
-        border-bottom: 1px solid #fff;
-        outline: none;
-        background: transparent;
-        &:focus ~ label {
-          top: -20px;
-          left: 0;
-          color: #03e9f4;
-          font-size: 12px;
-        }
-        &:valid ~ label {
-          top: -20px;
-          left: 0;
-          color: #03e9f4;
-          font-size: 12px;
-        }
-      }
-    }
-  }
-}
-.login-box form a {
+.login-wrap {
   position: relative;
-  display: inline-block;
-  padding: 10px 20px;
-  color: #03e9f4;
-  font-size: 16px;
-  text-decoration: none;
-  text-transform: uppercase;
-  overflow: hidden;
-  transition: 0.5s;
-  margin-top: 40px;
-  letter-spacing: 4px;
+  width: 100%;
+  height: 100%;
+  background-image: url(../assets/img/login-bg.jpg);
+  background-size: 100%;
+  // display: none;
 }
-
-.login-box a:hover {
-  cursor: pointer;
-  background: #143b3d;
+.ms-title {
+  width: 100%;
+  line-height: 50px;
+  text-align: center;
+  font-size: 20px;
   color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 5px #03e9f4, 0 0 25px #03e9f4, 0 0 5px #03e9f4,
-    0 0 10px #03e9f4;
+  border-bottom: 1px solid #ddd;
+  &:hover {
+    cursor: pointer;
+  }
 }
-
-.login-box a span {
+.ms-login {
   position: absolute;
-  display: block;
+  left: 50%;
+  top: 50%;
+  width: 350px;
+  margin: -190px 0 0 -175px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
 }
-
-.login-box a span:nth-child(1) {
-  top: 0;
-  left: -100%;
+.ms-content {
+  padding: 30px 30px;
+  :deep() .el-input-group__prepend {
+    padding: 0 10px !important;
+  }
+}
+.login-btn {
+  text-align: center;
+}
+.login-btn button {
   width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #03e9f4);
-  animation: btn-anim1 1s linear infinite;
+  height: 36px;
+  margin-bottom: 10px;
+}
+.login-tips {
+  font-size: 12px;
+  line-height: 30px;
+  color: #fff;
 }
 
-@keyframes btn-anim1 {
-  0% {
-    left: -100%;
-  }
-  50%,
-  100% {
-    left: 100%;
-  }
+.iconMenu {
+  color: #222;
+  font-size: 24px;
 }
 
-.login-box a span:nth-child(2) {
-  top: -100%;
-  right: 0;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, #03e9f4);
-  animation: btn-anim2 1s linear infinite;
-  animation-delay: 0.25s;
-}
-
-@keyframes btn-anim2 {
-  0% {
-    top: -100%;
-  }
-  50%,
-  100% {
-    top: 100%;
-  }
-}
-
-.login-box a span:nth-child(3) {
-  bottom: 0;
-  right: -100%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(270deg, transparent, #03e9f4);
-  animation: btn-anim3 1s linear infinite;
-  animation-delay: 0.5s;
-}
-
-@keyframes btn-anim3 {
-  0% {
-    right: -100%;
-  }
-  50%,
-  100% {
-    right: 100%;
-  }
-}
-
-.login-box a span:nth-child(4) {
-  bottom: -100%;
-  left: 0;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(360deg, transparent, #03e9f4);
-  animation: btn-anim4 1s linear infinite;
-  animation-delay: 0.75s;
-}
-
-@keyframes btn-anim4 {
-  0% {
-    bottom: -100%;
-  }
-  50%,
-  100% {
-    bottom: 100%;
-  }
+.isActive {
+  color: $bg-color !important;
 }
 </style>
